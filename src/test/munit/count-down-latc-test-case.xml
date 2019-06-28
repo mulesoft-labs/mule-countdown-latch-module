@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:count-down-latch="http://www.mulesoft.org/schema/mule/countdown-latch"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+      xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+      xmlns:mtf="http://www.mulesoft.org/schema/mule/mtf"
+      xmlns:mule="http://www.mulesoft.org/schema/mule/core"
+      xmlns:countdown-latch="http://www.mulesoft.org/schema/mule/countdown-latch"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+      http://www.mulesoft.org/schema/mule/countdown-latch http://www.mulesoft.org/schema/mule/countdown-latch/current/mule-countdown-latch.xsd
+      http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+      http://www.mulesoft.org/schema/mule/mtf  http://www.mulesoft.org/schema/mule/mtf/current/mule-mtf.xsd
+      http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd">
+
+    <munit:config name="countdown-latch-test-case"/>
+
+    <munit:test name="wait-for-async-tasks">
+        <munit:execution>
+            <set-variable variableName="count" value="#[5]"/>
+            <countdown-latch:init number="#[vars.count]"/>
+            <async>
+                <foreach collection="#[1 to (vars.count - 1)]">
+                    <countdown-latch:countdown/>
+                    <munit-tools:queue queueName="countdown"/>
+                </foreach>
+            </async>
+            <async>
+                <countdown-latch:await/>
+                <munit-tools:queue queueName="await"/>
+            </async>
+            <until-successful maxRetries="10" millisBetweenRetries="500">
+                <munit-tools:assert-that expression="#[MunitTools::queueSize('await')]" is="#[MunitTools::equalTo(0)]"/>
+                <munit-tools:assert-that expression="#[CountdownLatch::getCount(correlationId)]" is="#[MunitTools::equalTo(1)]"/>
+            </until-successful>
+            <countdown-latch:countdown/>
+        </munit:execution>
+        <munit:validation>
+            <until-successful maxRetries="10" millisBetweenRetries="500">
+                <munit-tools:assert-that expression="#[MunitTools::queueSize('await')]" is="#[MunitTools::equalTo(1)]"/>
+                <munit-tools:assert-that expression="#[CountdownLatch::getCount(correlationId)]" is="#[MunitTools::equalTo(0)]"/>
+            </until-successful>
+        </munit:validation>
+    </munit:test>
+
+
+</mule>
