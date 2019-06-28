@@ -10,9 +10,9 @@
         <version>1.1.2</version>
     </parent>
 
-    <groupId>org.mule.connectors</groupId>
-    <artifactId>count-down-latch-module</artifactId>
-    <version>1.0.0-006-SNAPSHOT</version>
+    <groupId>org.mule.modules</groupId>
+    <artifactId>countdown-latch-module</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>mule-extension</packaging>
     <name>CountDown Latch Module</name>
 
